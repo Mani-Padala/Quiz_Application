@@ -1,0 +1,18 @@
+{% extends "base.html" %} {% block hero_right %}Signed in as {{ name }} &middot;
+<a href="/logout">Log out</a>{% endblock %} {% block content %}
+<h1>Documents not processed yet</h1>
+<div class="card accent-amber">
+  <p>
+    The document(s) in the <code>documents/</code> folder haven't been processed
+    yet, so there's nothing to quiz on.
+  </p>
+  <p>
+    This is a one-time (or after-you-change-documents) step, run separately from
+    the web app so a large document's processing time never blocks a login or
+    page load.
+  </p>
+  <p>On the machine running this app, run:</p>
+  <p><code>python process_documents.py</code></p>
+  <p>Once it completes, refresh this page.</p>
+</div>
+{% endblock %}

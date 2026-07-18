@@ -1,0 +1,13 @@
+{% extends "base.html" %} {% block content %}
+<div class="card">
+  {% if result.correct %}
+  <p class="correct">Correct!</p>
+  {% else %}
+  <p class="incorrect">
+    Incorrect. Correct answer: {{ result.correct_answer }}
+  </p>
+  {% endif %}
+  <p>{{ result.explanation }}</p>
+  <a href="/quiz/{{ session_id }}"><button>Next question</button></a>
+</div>
+{% endblock %}

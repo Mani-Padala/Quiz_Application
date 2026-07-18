@@ -1,0 +1,55 @@
+{% extends "base.html" %} {% block hero_right %}Signed in as {{ name }} &middot;
+<a href="/logout">Log out</a>{% endblock %} {% block content %}
+<h1>Welcome back</h1>
+
+{% if has_incomplete_session %}
+<div class="card accent-amber">
+  <h2>Resume in progress <span class="badge amber">Incomplete</span></h2>
+  <p>You have a quiz already underway.</p>
+  <a href="/quiz/{{ incomplete_session_id }}"><button>Resume quiz</button></a>
+</div>
+{% endif %}
+
+<div class="card accent-cyan">
+  <h2>Exam instructions</h2>
+  <ul class="instructions">
+    <li>
+      Questions are generated fresh from the source document — you won't be
+      shown a question you've already seen before.
+    </li>
+    <li>
+      Answers are recorded as you go; you can't go back to change a previous
+      answer.
+    </li>
+    <li>
+      At the end, you'll see your score, a per-topic breakdown, and suggested
+      areas to focus on next time.
+    </li>
+    <li>You can leave and resume an in-progress quiz later from this page.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Start a new quiz</h2>
+  <form action="/quiz/start" method="post">
+    <label for="questions_per_topic">Number of questions</label>
+    <select id="questions_per_topic" name="questions_per_topic">
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="30">30</option>
+      <option value="40">40</option>
+      <option value="50">50</option>
+    </select>
+
+    <label for="difficulty">Difficulty</label>
+    <select id="difficulty" name="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium" selected>Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+
+    <br /><br />
+    <input type="submit" value="Start quiz" />
+  </form>
+</div>
+{% endblock %}

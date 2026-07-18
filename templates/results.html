@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block hero_right %}<a href="/logout">Log out</a>{%
+endblock %} {% block content %}
+<h1>Quiz results</h1>
+
+{% if summary %}
+<div class="card">
+  <div class="score-hero">
+    <div class="big-number">{{ "%.0f"|format(summary.score_percent) }}%</div>
+    <p>
+      {{ summary.total_correct }} out of {{ summary.total_questions }} correct
+    </p>
+  </div>
+</div>
+{% endif %} {% if breakdown %}
+<div class="card accent-cyan">
+  <h2>Per-topic breakdown</h2>
+  {% for topic, stats in breakdown.items() %}
+  <p>
+    {{ topic }}: {{ stats.correct }} / {{ stats.total }} ({{
+    "%.1f"|format(stats.score) }}%)
+  </p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card accent-green">
+  <h2>Overall performance</h2>
+  {% if overall.topics_attempted > 0 %}
+  <p>
+    Average across all topics you've attempted:
+    <strong>{{ "%.1f"|format(overall.overall_average) }}%</strong>
+  </p>
+
+  {% if overall.improvement_suggestions %}
+  <h3>Suggested focus areas</h3>
+  {% for s in overall.improvement_suggestions %}
+  <p>
+    {{ s.topic_name }}: {{ "%.1f"|format(s.average_score) }}% average over {{
+    s.attempts }} attempt(s)
+  </p>
+  {% endfor %} {% endif %} {% else %}
+  <p>No history yet — this was your first session.</p>
+  {% endif %}
+</div>
+
+<a href="/"><button>Back to home</button></a>
+{% endblock %}

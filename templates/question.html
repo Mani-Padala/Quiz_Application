@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block hero_right %}<a href="/logout">Log out</a>{%
+endblock %} {% block content %}
+<h1>
+  {{ question.topic_name }}
+  <span
+    class="badge {% if question.difficulty == 'hard' %}amber{% elif question.difficulty == 'easy' %}green{% endif %}"
+    >{{ question.difficulty }}</span
+  >
+</h1>
+
+<div class="card">
+  <p style="font-size: 17px; color: #1e293b">{{ question.question_text }}</p>
+
+  <form action="/quiz/{{ session_id }}/answer" method="post">
+    {% for key, text in question.options.items() %}
+    <label
+      class="option"
+      style="
+        text-transform: none;
+        font-weight: normal;
+        color: #1e293b;
+        margin-top: 0;
+      "
+    >
+      <input
+        type="radio"
+        name="selected"
+        value="{{ key }}"
+        required
+        style="margin-right: 8px"
+      />
+      <strong>{{ key }}.</strong> {{ text }}
+    </label>
+    {% endfor %}
+    <br />
+    <input type="submit" value="Submit answer" />
+  </form>
+</div>
+{% endblock %}
