@@ -85,11 +85,15 @@ def _insert_generated_questions(topic, difficulty, questions):
     return new_ids
 
 
-def ensure_enough_unseen(user_id, topic, difficulty, context_chunks, needed):
+def ensure_enough_unseen(user_id, topic, difficulty, context_chunks, needed, api_key=None):
     """
     Guarantees at least `needed` unseen (for this user) questions exist for
     this topic/difficulty, generating more via generator.py if the current
     pool doesn't have enough the user hasn't already seen.
+
+    api_key: optional per-user Groq API key, passed straight through to
+    generator.py so each user consumes their own quota instead of everyone
+    sharing one server-side key.
 
     Returns exactly `needed` question_ids.
     """
@@ -107,7 +111,8 @@ def ensure_enough_unseen(user_id, topic, difficulty, context_chunks, needed):
             context_chunks=sampled_chunks,
             topic=topic,
             difficulty=difficulty,
-            num_questions=shortfall
+            num_questions=shortfall,
+            api_key=api_key,
         )
         new_ids = _insert_generated_questions(topic, difficulty, new_questions)
         unseen_ids.extend(new_ids)
@@ -164,7 +169,7 @@ def get_question_sequence(session_id):
 # Session lifecycle
 # ---------------------------------------------------------------------------
 
-def start_quiz(user_id, topic_sections, difficulty="medium", questions_per_topic=10):
+def start_quiz(user_id, topic_sections, difficulty="medium", questions_per_topic=10, api_key=None):
     """
     Starts a new quiz session covering multiple topics/sections.
 
@@ -173,6 +178,7 @@ def start_quiz(user_id, topic_sections, difficulty="medium", questions_per_topic
         section of the source document).
     difficulty: "easy" | "medium" | "hard" for this whole session.
     questions_per_topic: how many questions to include per topic/section.
+    api_key: optional per-user Groq API key — see ensure_enough_unseen.
 
     Returns the new session_id.
     """
@@ -182,7 +188,7 @@ def start_quiz(user_id, topic_sections, difficulty="medium", questions_per_topic
     all_question_ids = []
     for topic, context_chunks in topic_sections.items():
         question_ids = ensure_enough_unseen(
-            user_id, topic, difficulty, context_chunks, questions_per_topic
+            user_id, topic, difficulty, context_chunks, questions_per_topic, api_key=api_key
         )
         all_question_ids.extend(question_ids)
 

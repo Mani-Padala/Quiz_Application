@@ -2,4 +2,5 @@ venv/
 .env
 __pycache__/
 *.pyc
-quiz_app.dbdocuments/
+quiz_app.db
+documents/

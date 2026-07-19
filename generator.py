@@ -60,18 +60,21 @@ Question: {
 # Client setup
 # ---------------------------------------------------------------------------
 
-def get_groq_client():
+def get_groq_client(api_key=None):
     """
-    Creates a Groq client using GROQ_API_KEY from the environment.
-    Set it with: export GROQ_API_KEY=your_key_here (never hardcode it in code).
+    Creates a Groq client. If api_key is provided (e.g. a per-user key from
+    the web app's quiz-start form), that's used — each user then consumes
+    their own free-tier quota instead of everyone sharing one server key.
+    Falls back to GROQ_API_KEY from the environment if no key is passed in
+    (used by main.py's CLI flow, where there's no per-user key concept).
     """
-    api_key = os.environ.get("GROQ_API_KEY")
-    if not api_key:
+    resolved_key = api_key or os.environ.get("GROQ_API_KEY")
+    if not resolved_key:
         raise EnvironmentError(
-            "GROQ_API_KEY not found in environment. "
-            "Set it with: export GROQ_API_KEY=your_key_here"
+            "No Groq API key provided and GROQ_API_KEY not found in environment. "
+            "Pass an api_key explicitly, or set: export GROQ_API_KEY=your_key_here"
         )
-    return Groq(api_key=api_key)
+    return Groq(api_key=resolved_key)
 
 
 # ---------------------------------------------------------------------------
@@ -125,11 +128,11 @@ code fences. Example shape:
 # LLM call
 # ---------------------------------------------------------------------------
 
-def call_groq(prompt):
+def call_groq(prompt, api_key=None):
     """
     Sends the prompt to Groq and returns the raw text response.
     """
-    client = get_groq_client()
+    client = get_groq_client(api_key=api_key)
     response = client.chat.completions.create(
         model=GROQ_MODEL,
         messages=[
@@ -183,7 +186,7 @@ def parse_questions(raw_response):
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def generate_questions(context_chunks, topic, difficulty, num_questions=5, reference_examples=None):
+def generate_questions(context_chunks, topic, difficulty, num_questions=5, reference_examples=None, api_key=None):
     """
     Main function called by quiz.py.
 
@@ -193,12 +196,14 @@ def generate_questions(context_chunks, topic, difficulty, num_questions=5, refer
     num_questions: how many questions to generate
     reference_examples: optional string to override the generic few-shot
         format — pass in real exam paper excerpts here once available.
+    api_key: optional per-user Groq API key. If omitted, falls back to
+        GROQ_API_KEY from the environment (see get_groq_client).
 
     Returns: list of dicts, each with keys:
         question, options (dict A-D), correct_answer, explanation
     """
     prompt = build_prompt(context_chunks, topic, difficulty, num_questions, reference_examples)
-    raw_response = call_groq(prompt)
+    raw_response = call_groq(prompt, api_key=api_key)
     return parse_questions(raw_response)
 
 

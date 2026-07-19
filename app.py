@@ -184,6 +184,7 @@ def get_incomplete_session(user_id):
 @app.post("/quiz/start")
 async def start_quiz_route(
     request: Request,
+    groq_api_key: str = Form(...),
     difficulty: str = Form("medium"),
     questions_per_topic: int = Form(10),
     user_id: str = Depends(require_login),
@@ -200,7 +201,10 @@ async def start_quiz_route(
     num_sections = max(1, len(all_sections))
     per_section_count = max(1, questions_per_topic // num_sections)
 
-    session_id = quiz.start_quiz(user_id, all_sections, difficulty, per_section_count)
+    # groq_api_key flows straight through to generator.py for this one call
+    # chain — never written to the session, the database, or disk anywhere.
+    # Each user consumes their own free-tier quota instead of sharing one key.
+    session_id = quiz.start_quiz(user_id, all_sections, difficulty, per_section_count, api_key=groq_api_key)
     return RedirectResponse(url=f"/quiz/{session_id}", status_code=303)
 
 
