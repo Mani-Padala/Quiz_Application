@@ -1,7 +1,7 @@
 -- Users table
 CREATE TABLE IF NOT EXISTS users(
     user_id TEXT PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
+    username TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
 
