@@ -189,6 +189,12 @@ async def start_quiz_route(
     questions_per_topic: int = Form(10),
     user_id: str = Depends(require_login),
 ):
+    # Strip whitespace defensively — a copy-pasted API key with a trailing
+    # space corrupts the "Bearer <token>" HTTP header at the protocol level
+    # (the exact class of bug we studied earlier with Postman's Bearer
+    # token field), so this must be clean before it ever reaches generator.py.
+    groq_api_key = groq_api_key.strip()
+
     if not os.path.exists(SECTIONS_CACHE_PATH):
         return RedirectResponse(url="/", status_code=303)
 
@@ -238,8 +244,28 @@ async def quiz_results(request: Request, session_id: str, user_id: str = Depends
 
     breakdown = {}
     summary = None
+    review = []
+
     if checkpoint is not None:
-        breakdown = scorer.save_topic_scores(session_id, user_id, checkpoint["answered_questions"])
+        answered = checkpoint["answered_questions"]
+
+        # Build the review BEFORE finish_quiz() deletes the checkpoint —
+        # this is the only point where we still have both the full question
+        # sequence and what the user actually selected for each one.
+        sequence = quiz.get_question_sequence(session_id)
+        for q in sequence:
+            result = answered.get(q["question_id"])
+            if result is not None:
+                review.append({
+                    "question_text": q["question_text"],
+                    "options": q["options"],
+                    "correct_answer": q["correct_answer"],
+                    "selected": result["selected"],
+                    "is_correct": result["correct"],
+                    "explanation": q["explanation"],
+                })
+
+        breakdown = scorer.save_topic_scores(session_id, user_id, answered)
         summary = quiz.finish_quiz(session_id, user_id)
 
     overall = scorer.get_overall_summary(user_id)
@@ -248,4 +274,5 @@ async def quiz_results(request: Request, session_id: str, user_id: str = Depends
         "summary": summary,
         "breakdown": breakdown,
         "overall": overall,
+        "review": review,
     })

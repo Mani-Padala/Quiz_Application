@@ -43,5 +43,33 @@ endblock %} {% block content %}
   {% endif %}
 </div>
 
+{% if review %}
+<div class="card">
+  <h2>Review your answers</h2>
+  {% for item in review %}
+  <div style="border-bottom: 1px solid #e2e8f0; padding: 14px 0">
+    <p style="font-weight: 600; color: #1e293b; margin-bottom: 8px">
+      {{ loop.index }}. {{ item.question_text }}
+    </p>
+    {% for key, text in item.options.items() %}
+    <p
+      style="margin: 4px 0 4px 12px; font-size: 14px;
+            {% if key == item.correct_answer %}color: #16a34a; font-weight: 700;
+            {% elif key == item.selected %}color: #e11d48; font-weight: 700;
+            {% else %}color: #94a3b8;{% endif %}"
+    >
+      {{ key }}. {{ text }} {% if key == item.correct_answer %} &#10003; correct
+      answer{% endif %} {% if key == item.selected and key !=
+      item.correct_answer %} &#10007; your answer{% endif %}
+    </p>
+    {% endfor %}
+    <p style="font-size: 13px; color: #64748b; margin-top: 8px">
+      {{ item.explanation }}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <a href="/"><button>Back to home</button></a>
 {% endblock %}
